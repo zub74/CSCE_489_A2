@@ -1,0 +1,9 @@
+C:/Users/Caden/source/repos/CSCE_489/A2/build/CMakeFiles/A2.dir
+C:/Users/Caden/source/repos/CSCE_489/A2/build/CMakeFiles/INSTALL.dir
+C:/Users/Caden/source/repos/CSCE_489/A2/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Caden/source/repos/CSCE_489/A2/build/CMakeFiles/ZERO_CHECK.dir
+C:/Users/Caden/source/repos/CSCE_441/Libraries/glfw-3.3.2/debug/CMakeFiles/uninstall.dir
+C:/Users/Caden/source/repos/CSCE_441/Libraries/glfw-3.3.2/debug/CMakeFiles/INSTALL.dir
+C:/Users/Caden/source/repos/CSCE_441/Libraries/glfw-3.3.2/debug/CMakeFiles/ALL_BUILD.dir
+C:/Users/Caden/source/repos/CSCE_441/Libraries/glfw-3.3.2/debug/src/CMakeFiles/glfw.dir
+C:/Users/Caden/source/repos/CSCE_441/Libraries/glfw-3.3.2/debug/src/CMakeFiles/INSTALL.dir
