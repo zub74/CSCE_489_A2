@@ -28,6 +28,18 @@ ShapeSkin::ShapeSkin() :
 
 ShapeSkin::~ShapeSkin()
 {
+	free(bindPose);
+	free(invertedBindPose);
+	
+	for (int i = 0; i < sz; i++) {
+		free(animationFrames[i]);
+	}
+	free(animationFrames);
+
+	for (int i = 0; i < sz; i++) {
+		free(invertedAnimationFrames[i]);
+	}
+	free(invertedAnimationFrames);
 }
 
 void ShapeSkin::setTextureMatrixType(const std::string &meshName)
@@ -72,6 +84,14 @@ void ShapeSkin::loadMesh(const string &meshName)
 			}
 		}
 	}
+
+	//apparently you can just reserve size for vectors so theres actually no point in using arrays, but I aready wrote lots of code using arrays
+	//so i guess it just be like that sometimes :/
+	//animPosBuf.reserve(posBuf.size());
+	//animNorBuf.reserve(norBuf.size());
+	//jk can't just reserve then access, gotta actually have stuff in there
+	animPosBuf = vector<float>(posBuf.size(), 0.0f);
+	animNorBuf = vector<float>(norBuf.size(), 0.0f);
 }
 
 void ShapeSkin::loadAttachment(const std::string &filename)
@@ -215,13 +235,15 @@ void ShapeSkin::parseAnimationFile(string filename) {
 	string number;
 
 	animationFrames = new glm::mat4 * [sz];
+	invertedAnimationFrames = new glm::mat4 * [sz];
 	glm::mat4* boneMatrices;
+	glm::mat4* invertedBoneMatrices;
 
 	for (int i = -1; i < frames; i++) {
 		getline(in, line);
 		stringstream ss(line);
-
 		boneMatrices = new glm::mat4[bones];
+		invertedBoneMatrices = new glm::mat4[bones];
 
 		for (int j = 0; j < bones; j++) {
 			//read in 7 floats
@@ -237,13 +259,16 @@ void ShapeSkin::parseAnimationFile(string filename) {
 
 			//put the matrix in the boneMatrix array
 			boneMatrices[j] = E;
+			invertedBoneMatrices[j] = inverse(E);
 		}
 
 		if (i == -1) { //first one is the bind pose
 			bindPose = boneMatrices;
+			invertedBindPose = invertedBoneMatrices;
 		}
 		else {
 			animationFrames[i] = boneMatrices;
+			invertedAnimationFrames[i] = invertedBoneMatrices;
 		}
 	}
 	in.close();
@@ -255,13 +280,47 @@ void ShapeSkin::update(int k)
 	// After computing the new positions and normals, send the new data
 	// to the GPU by copying and pasting the relevant code from the
 	// init() function.
-	for (int i = 0; i < vertices; i++) { //vertex
-		for (int j = 0; j < maxInfluences; j++) {//bone influence
-			float boneWeight = boneWeightBuf[i * maxInfluences + j];
-
-		}
+	mat4* bindAnimProducts = new mat4[bones]; //array of mat4s
+	for (int j = 0; j < bones; j++) { //get the array of stuff
+		bindAnimProducts[j] = animationFrames[k][j] * bindPose[j]; //might need to strip out the rotation? TBD
 	}
+
+	for (int i = 0; i < vertices; i++) { //vertex
+		int ind = i * 3;
+		vec4 initialPos = vec4(posBuf[ind], posBuf[ind + 1], posBuf[ind + 2], 1);
+		vec4 initialNor = vec4(norBuf[ind], norBuf[ind + 1], norBuf[ind + 2], 1);
+
+		vec4 skinnedPos(0, 0, 0, 1);
+		vec4 skinnedNor(0, 0, 0, 0);
+		for (int j = 0; j < maxInfluences; j++) {//bone influence
+			float skinningWeight = boneWeightBuf[i * maxInfluences + j];
+			if (skinningWeight <= 0.0f) {
+				break; //no more bone influences past this point, so no need to finish influences for loop
+			}
+			int boneSelected = boneIndBuf[i * maxInfluences + j];
+			skinnedPos += skinningWeight * bindAnimProducts[boneSelected] * initialPos;
+			skinnedNor += skinningWeight * bindAnimProducts[boneSelected] * initialNor;
+		}
+
+		animPosBuf[ind] = skinnedPos.x;
+		animPosBuf[ind + 1] = skinnedPos.y;
+		animPosBuf[ind + 2] = skinnedPos.z;
+	}
+
+	// Send the position array to the GPU
+	glBindBuffer(GL_ARRAY_BUFFER, posBufID);
+	glBufferData(GL_ARRAY_BUFFER, animPosBuf.size() * sizeof(float), &animPosBuf[0], GL_DYNAMIC_DRAW);
+
+	// Send the normal array to the GPU
+	glBindBuffer(GL_ARRAY_BUFFER, norBufID);
+	glBufferData(GL_ARRAY_BUFFER, animNorBuf.size() * sizeof(float), &animNorBuf[0], GL_DYNAMIC_DRAW);
+
+	// Unbind the arrays
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	
+	free(bindAnimProducts);
+
 	GLSL::checkError(GET_FILE_LINE);
 }
 

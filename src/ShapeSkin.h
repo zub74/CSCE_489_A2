@@ -28,7 +28,9 @@ public:
 	std::shared_ptr<TextureMatrix> getTextureMatrix() { return T; }
 
 	glm::mat4* bindPose;
+	glm::mat4* invertedBindPose;
 	glm::mat4** animationFrames;
+	glm::mat4** invertedAnimationFrames;
 	void parseAnimationFile(std::string filename);
 	int frames() { return sz; }
 	int numBones() { return bns; }
@@ -37,7 +39,9 @@ private:
 	std::shared_ptr<Program> prog;
 	std::vector<unsigned int> elemBuf;
 	std::vector<float> posBuf;
+	std::vector<float> animPosBuf;
 	std::vector<float> norBuf;
+	std::vector<float> animNorBuf;
 	std::vector<float> texBuf;
 	std::vector<int> boneIndBuf;
 	std::vector<float> boneWeightBuf;
@@ -48,7 +52,9 @@ private:
 	int bns;
 	GLuint elemBufID;
 	GLuint posBufID;
+	GLuint animPosBufID;
 	GLuint norBufID;
+	GLuint animNorBufID;
 	GLuint texBufID;
 	std::string textureFilename;
 	std::shared_ptr<TextureMatrix> T;
