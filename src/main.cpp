@@ -12,6 +12,7 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include "GLSL.h"
 #include "Program.h"
@@ -20,6 +21,7 @@
 #include "ShapeSkin.h"
 #include "Texture.h"
 #include "TextureMatrix.h"
+#include "Skinning.h"
 
 using namespace std;
 
@@ -33,6 +35,8 @@ public:
 };
 
 DataInput dataInput;
+Skinner skinner;
+bool drawBones = false;
 
 GLFWwindow *window; // Main application window
 string RESOURCE_DIR = ""; // Where the shaders are loaded from
@@ -95,6 +99,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void init()
 {
+	skinner.parseAnimationFile(DATA_DIR + "bigvegas_Walking_skel.txt");
 	keyToggles[(unsigned)'c'] = true;
 	
 	camera = make_shared<Camera>();
@@ -196,8 +201,10 @@ void render()
 	}
 	if(keyToggles[(unsigned)'z']) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		drawBones = true;
 	} else {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		drawBones = false;
 	}
 	
 	auto P = make_shared<MatrixStack>();
@@ -208,7 +215,9 @@ void render()
 	camera->applyProjectionMatrix(P);
 	MV->pushMatrix();
 	camera->applyViewMatrix(MV);
-	
+	MV->translate(0, -120, -100); //he's too low Jim
+
+
 	// Draw grid
 	progSimple->bind();
 	glUniformMatrix4fv(progSimple->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
@@ -232,17 +241,46 @@ void render()
 		glVertex3f( gridSizeHalf, 0, z);
 	}
 	glEnd();
+
 	progSimple->unbind();
 	
 	// Draw character
 	double fps = 30;
-	int frameCount = 1; // TODO: This number needs to be modified
+	int frameCount = skinner.frames(); // TODO: This number needs to be modified
 	int frame = ((int)floor(t*fps)) % frameCount;
+	glm::mat4* boneMatrix = skinner.animationFrames[frame];
 	for(const auto &shape : shapes) {
 		MV->pushMatrix();
 		
 		// Draw bone
 		// TODO: implement
+
+		if (drawBones) {
+			progSimple->bind();
+
+			glLineWidth(2);
+			glBegin(GL_LINES);
+
+			for (int i = 0; i < skinner.bones(); i++) {
+				MV->pushMatrix();
+				MV->multMatrix(boneMatrix[i]);
+				glm::vec4 pos = boneMatrix[i][3];
+				glColor3f(1, 0, 0);
+				glVertex3f(pos.x, pos.y, pos.z);
+				glVertex3f(pos.x + 5, pos.y, pos.z);
+				glColor3f(0, 1, 0);
+				glVertex3f(pos.x, pos.y, pos.z);
+				glVertex3f(pos.x, pos.y + 5, pos.z);
+				glColor3f(0, 0, 1);
+				glVertex3f(pos.x, pos.y, pos.z);
+				glVertex3f(pos.x, pos.y, pos.z + 5);
+				MV->popMatrix();
+			}
+
+			glEnd();
+
+			progSimple->unbind();
+		}
 		
 		// Draw skin
 		progSkin->bind();
@@ -336,7 +374,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	// Create a windowed mode window and its OpenGL context.
-	window = glfwCreateWindow(640, 480, "YOUR NAME", NULL, NULL);
+	window = glfwCreateWindow(1920, 1080, "Caden Stewart", NULL, NULL);
 	if(!window) {
 		glfwTerminate();
 		return -1;
