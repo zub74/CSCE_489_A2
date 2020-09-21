@@ -282,13 +282,13 @@ void ShapeSkin::update(int k)
 	// init() function.
 	mat4* bindAnimProducts = new mat4[bones]; //array of mat4s
 	for (int j = 0; j < bones; j++) { //get the array of stuff
-		bindAnimProducts[j] = animationFrames[k][j] * bindPose[j]; //might need to strip out the rotation? TBD
+		bindAnimProducts[j] = animationFrames[k][j] * invertedBindPose[j]; //might need to strip out the rotation? TBD
 	}
 
 	for (int i = 0; i < vertices; i++) { //vertex
 		int ind = i * 3;
 		vec4 initialPos = vec4(posBuf[ind], posBuf[ind + 1], posBuf[ind + 2], 1);
-		vec4 initialNor = vec4(norBuf[ind], norBuf[ind + 1], norBuf[ind + 2], 1);
+		vec4 initialNor = vec4(norBuf[ind], norBuf[ind + 1], norBuf[ind + 2], 0);
 
 		vec4 skinnedPos(0, 0, 0, 1);
 		vec4 skinnedNor(0, 0, 0, 0);
@@ -305,6 +305,10 @@ void ShapeSkin::update(int k)
 		animPosBuf[ind] = skinnedPos.x;
 		animPosBuf[ind + 1] = skinnedPos.y;
 		animPosBuf[ind + 2] = skinnedPos.z;
+
+		animNorBuf[ind] = skinnedNor.x;
+		animNorBuf[ind + 1] = skinnedNor.y;
+		animNorBuf[ind + 2] = skinnedNor.z;
 	}
 
 	// Send the position array to the GPU

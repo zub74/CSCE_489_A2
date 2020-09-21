@@ -52,9 +52,7 @@ private:
 	int bns;
 	GLuint elemBufID;
 	GLuint posBufID;
-	GLuint animPosBufID;
 	GLuint norBufID;
-	GLuint animNorBufID;
 	GLuint texBufID;
 	std::string textureFilename;
 	std::shared_ptr<TextureMatrix> T;
