@@ -33,7 +33,7 @@ void Skinner::parseAnimationFile(string filename) {
 
 	ss >> framesStr;
 	int frames = stoi(framesStr);
-	sz = frames - 1; //set size to the number of frames we're reading in minus the bind pose
+	sz = frames; //apparently there's 28 total bind positions, 1 t pose plus 27 frames (NOT 26 frames whoops)
 	ss >> bonesStr;
 	int bones = stoi(bonesStr);
 	bns = bones;
@@ -41,10 +41,10 @@ void Skinner::parseAnimationFile(string filename) {
 	float floatArr[7];
 	string number;
 
-	animationFrames = new glm::mat4*[sz]; //sz is frames - 1
+	animationFrames = new glm::mat4*[sz]; 
 	glm::mat4* boneMatrices;
 
-	for (int i = 0; i < frames; i++) {
+	for (int i = -1; i < frames; i++) {
 		getline(in, line);
 		stringstream ss(line);
 
@@ -66,11 +66,11 @@ void Skinner::parseAnimationFile(string filename) {
 			boneMatrices[j] = E;
 		}
 
-		if (i == 0) {
+		if (i == -1) { //first one is the bind pose
 			bindPose = boneMatrices;
 		}
 		else {
-			animationFrames[i - 1] = boneMatrices;
+			animationFrames[i] = boneMatrices;
 		}
 	}
 	in.close();

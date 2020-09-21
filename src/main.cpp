@@ -35,7 +35,6 @@ public:
 };
 
 DataInput dataInput;
-Skinner skinner;
 bool drawBones = false;
 
 GLFWwindow *window; // Main application window
@@ -99,7 +98,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void init()
 {
-	skinner.parseAnimationFile(DATA_DIR + "bigvegas_Walking_skel.txt");
 	keyToggles[(unsigned)'c'] = true;
 	
 	camera = make_shared<Camera>();
@@ -108,6 +106,10 @@ void init()
 	for(const auto &mesh : dataInput.meshData) {
 		auto shape = make_shared<ShapeSkin>();
 		shapes.push_back(shape);
+
+		//add skeleton data
+		shape->parseAnimationFile(DATA_DIR + dataInput.skeletonData);
+
 		shape->setTextureMatrixType(mesh[0]);
 		shape->loadMesh(DATA_DIR + mesh[0]);
 		shape->loadAttachment(DATA_DIR + mesh[1]);
@@ -246,11 +248,12 @@ void render()
 	
 	// Draw character
 	double fps = 30;
-	int frameCount = skinner.frames(); // TODO: This number needs to be modified
-	int frame = ((int)floor(t*fps)) % frameCount;
-	glm::mat4* boneMatrix = skinner.animationFrames[frame];
 	for(const auto &shape : shapes) {
 		MV->pushMatrix();
+
+		int frameCount = shape->frames(); // TODO: This number needs to be modified
+		int frame = ((int)floor(t * fps)) % frameCount;
+		glm::mat4* boneMatrix = shape->animationFrames[frame];
 		
 		// Draw bone
 		// TODO: implement
@@ -259,25 +262,26 @@ void render()
 			progSimple->bind();
 
 			glLineWidth(2);
-			glBegin(GL_LINES);
 
-			for (int i = 0; i < skinner.bones(); i++) {
+			for (int i = 0; i < shape->numBones(); i++) {
 				MV->pushMatrix();
 				MV->multMatrix(boneMatrix[i]);
-				glm::vec4 pos = boneMatrix[i][3];
+				glUniformMatrix4fv(progSimple->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix())); //gotta update the matrix whoops
+				//gotta have the stuff set first, didn't realize what was going wrong >:(
+				glBegin(GL_LINES);
 				glColor3f(1, 0, 0);
-				glVertex3f(pos.x, pos.y, pos.z);
-				glVertex3f(pos.x + 5, pos.y, pos.z);
+				glVertex3f(0, 0, 0);
+				glVertex3f(5, 0, 0);
 				glColor3f(0, 1, 0);
-				glVertex3f(pos.x, pos.y, pos.z);
-				glVertex3f(pos.x, pos.y + 5, pos.z);
+				glVertex3f(0, 0, 0);
+				glVertex3f(0, 5, 0);
 				glColor3f(0, 0, 1);
-				glVertex3f(pos.x, pos.y, pos.z);
-				glVertex3f(pos.x, pos.y, pos.z + 5);
+				glVertex3f(0, 0, 0);
+				glVertex3f(0, 0, 5);
+				glEnd();
 				MV->popMatrix();
 			}
-
-			glEnd();
+			glUniformMatrix4fv(progSimple->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
 
 			progSimple->unbind();
 		}
