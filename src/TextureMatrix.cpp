@@ -3,6 +3,7 @@
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include "TextureMatrix.h"
 
@@ -42,9 +43,27 @@ void TextureMatrix::update(unsigned int key)
 		// Do nothing
 	} else if(type == Type::MOUTH) {
 		// TODO
+		if (key == 'm') { //horizontal 
+			cout << glm::to_string(T) << endl;
+		}
+		else if (key == 'M') { //vertical
+
+		}
 	} else if(type == Type::EYES) {
 		// TODO
+		if (key == 'e') { //horizontal 
+			cout << glm::to_string(T) << endl;
+		}
+		else if (key == 'E') { //vertical
+
+		}
 	} else if(type == Type::BROWS) {
 		// TODO
+		if (key == 'b') { //horizontal 
+			cout << glm::to_string(T) << endl;
+		}
+		else if (key == 'B') { //vertical
+
+		}
 	}
 }
