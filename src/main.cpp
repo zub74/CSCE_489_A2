@@ -47,7 +47,7 @@ vector< shared_ptr<ShapeSkin> > shapes;
 map< string, shared_ptr<Texture> > textureMap;
 shared_ptr<Program> progSimple = NULL;
 shared_ptr<Program> progSkin = NULL;
-double t, t0;
+double t, t0 = 0;
 
 static void error_callback(int error, const char *description)
 {
@@ -106,7 +106,6 @@ void init()
 	for(const auto &mesh : dataInput.meshData) {
 		auto shape = make_shared<ShapeSkin>();
 		shapes.push_back(shape);
-
 		//add skeleton data
 		shape->parseAnimationFile(DATA_DIR + dataInput.skeletonData);
 
@@ -182,6 +181,7 @@ void render()
 	float dt = (t1 - t0);
 	if(keyToggles[(unsigned)' ']) {
 		t += dt;
+		
 	}
 	t0 = t1;
 
@@ -248,12 +248,17 @@ void render()
 	
 	// Draw character
 	double fps = 30;
+	int shapeNo = 0;
 	for(const auto &shape : shapes) {
 		MV->pushMatrix();
 
 		int frameCount = shape->frames(); // TODO: This number needs to be modified
 		int frame = ((int)floor(t * fps)) % frameCount;
 		glm::mat4* boneMatrix = shape->animationFrames[frame];
+
+		if (t > 0) {
+			shape->animStarted = true;
+		}
 		
 		// Draw bone
 		// TODO: implement
@@ -296,7 +301,8 @@ void render()
 		glUniform3f(progSkin->getUniform("ks"), 0.1f, 0.1f, 0.1f);
 		glUniform1f(progSkin->getUniform("s"), 200.0f);
 		shape->setProgram(progSkin);
-		shape->update(frame);
+		if(shape->animStarted)
+			shape->update(frame);
 		shape->draw(frame);
 		progSkin->unbind();
 		
@@ -306,6 +312,8 @@ void render()
 	// Pop matrix stacks.
 	MV->popMatrix();
 	P->popMatrix();
+
+	shapeNo++;
 
 	GLSL::checkError(GET_FILE_LINE);
 }

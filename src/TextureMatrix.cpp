@@ -44,25 +44,31 @@ void TextureMatrix::update(unsigned int key)
 	} else if(type == Type::MOUTH) {
 		// TODO
 		if (key == 'm') { //horizontal 
-			cout << glm::to_string(T) << endl;
+			mHor++;
+			T[2][0] = (double) (mHor % 3) / 10; //just change the x translation
 		}
 		else if (key == 'M') { //vertical
-
+			mVer++;
+			T[2][1] = (double)(mVer % 10) / 10; //just change the y translation (the mod isn't strictly necessary but :)
 		}
 	} else if(type == Type::EYES) {
 		// TODO
 		if (key == 'e') { //horizontal 
-			cout << glm::to_string(T) << endl;
+			eHor++;
+			T[2][0] = (double)(eHor % 3) / 5; //just change the x translation
 		}
 		else if (key == 'E') { //vertical
-
+			eVer++;
+			T[2][1] = (double)(eVer % 10) / 10; //just change the y translation
 		}
 	} else if(type == Type::BROWS) {
 		// TODO
 		if (key == 'b') { //horizontal 
-			cout << glm::to_string(T) << endl;
+			//dont do anything here lol only one column
 		}
 		else if (key == 'B') { //vertical
+			bVer++;
+			T[2][1] = (double)(bVer % 10) / 10; //just change the y translation
 
 		}
 	}

@@ -31,9 +31,11 @@ public:
 	glm::mat4* invertedBindPose;
 	glm::mat4** animationFrames;
 	glm::mat4** invertedAnimationFrames;
+	bool animStarted;
 	void parseAnimationFile(std::string filename);
 	int frames() { return sz; }
 	int numBones() { return bns; }
+	
 	
 private:
 	std::shared_ptr<Program> prog;
